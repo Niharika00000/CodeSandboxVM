@@ -1,0 +1,15 @@
+{
+  "name": "collab-sandbox",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npx concurrently -n server,web -c blue,magenta \"npm run dev -w @sandbox/server\" \"npm run dev -w @sandbox/web\"",
+    "typecheck": "npm run typecheck -w @sandbox/server && npm run typecheck -w @sandbox/web",
+    "docker:pull": "docker pull node:22-alpine && docker pull python:3.12-alpine",
+    "docker:pull:all": "docker pull node:22-alpine && docker pull python:3.12-alpine && docker pull gcc:alpine && docker pull golang:1.23-alpine && docker pull rust:1.82-alpine && docker pull eclipse-temurin:21-alpine && docker pull bash:alpine && docker pull ruby:3.3-alpine && docker pull php:8.3-cli-alpine",
+    "test:collab": "npm run test:collab -w @sandbox/server",
+    "test:sandbox": "npm run test:sandbox -w @sandbox/server"
+  },
+  "devDependencies": { "concurrently": "^9.0.1" }
+}
