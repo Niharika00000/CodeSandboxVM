@@ -24,8 +24,8 @@ const getAiModel = () => {
 
 export const config = {
   port: num(process.env.PORT, 4000),
-  host: process.env.HOST ?? "127.0.0.1",
-  webOrigin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
+  host: process.env.HOST ?? (process.env.PORT ? "0.0.0.0" : "127.0.0.1"),
+  webOrigin: process.env.WEB_ORIGIN ?? "*",
   publicWebUrl: process.env.PUBLIC_WEB_URL ?? "http://localhost:3000",
   image: process.env.SANDBOX_IMAGE ?? "node:22-alpine",
   timeoutMs: num(process.env.EXEC_TIMEOUT_MS, 5000),

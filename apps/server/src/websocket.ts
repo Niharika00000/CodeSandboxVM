@@ -19,7 +19,7 @@ export function attachWebSocket(server: import("node:http").Server, runtime: San
     const url = new URL(req.url ?? "/", "http://x");
     // Origin check: blocks other websites from opening sockets with a visitor's browser.
     const origin = req.headers.origin;
-    if (url.pathname !== "/ws" || (origin && origin !== config.webOrigin)) {
+    if (url.pathname !== "/ws" || (origin && config.webOrigin !== "*" && origin !== config.webOrigin)) {
       log("SECURITY", `Rejected upgrade (path=${url.pathname}, origin=${origin ?? "none"})`);
       socket.destroy();
       return;
