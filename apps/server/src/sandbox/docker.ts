@@ -122,6 +122,101 @@ function getExecutionPlan(language: string, reqFileName?: string): ExecutionPlan
   }
 }
 
+async function executeHostFallback(
+  req: ExecutionRequest,
+  h: ExecutionHandlers,
+  done: (outcome: ExecutionOutcome, exitCode: number | null, reason?: string) => ExecutionResult,
+  plan: ExecutionPlan
+): Promise<ExecutionResult> {
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
+  const os = await import("node:os");
+
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "sbx-"));
+  h.onStatus("RUNNING");
+  h.onStdout("\x1b[36m⚡ [Host Fallback: Docker not installed on host — executing directly]\x1b[0m\r\n");
+
+  try {
+    const filesToWrite = req.files && req.files.length > 0
+      ? req.files
+      : [{ name: plan.targetFile, content: req.code }];
+
+    for (const f of filesToWrite) {
+      const safeName = f.name.replace(/^(\.\.[/\\])+/, "").replace(/^[/\\]+/, "");
+      const fullPath = path.join(tmpDir, safeName);
+      await fs.mkdir(path.dirname(fullPath), { recursive: true });
+      await fs.writeFile(fullPath, f.content, "utf8");
+    }
+
+    const norm = req.language.toLowerCase();
+    let cmd = "";
+    let args: string[] = [];
+    const targetPath = path.join(tmpDir, plan.targetFile);
+
+    if (norm === "python") {
+      cmd = process.platform === "win32" ? "python" : "python3";
+      args = ["-u", targetPath];
+    } else if (norm === "javascript") {
+      cmd = "node";
+      args = [targetPath];
+    } else if (norm === "typescript") {
+      cmd = "node";
+      args = ["--experimental-strip-types", targetPath];
+    } else if (norm === "shell" || norm === "bash") {
+      cmd = process.platform === "win32" ? "bash" : "sh";
+      args = [targetPath];
+    } else {
+      h.onStderr(`\r\n[Host Fallback] Language "${req.language}" requires Docker or local compiler installed.\r\n`);
+      return done("failed", 1, `Language ${req.language} requires Docker`);
+    }
+
+    return await new Promise<ExecutionResult>((resolve) => {
+      let outputBytes = 0;
+      let timer: NodeJS.Timeout | undefined;
+
+      const p = spawn(cmd, args, { cwd: tmpDir });
+
+      timer = setTimeout(() => {
+        try { p.kill("SIGKILL"); } catch {}
+        h.onStderr("\r\n[Execution timed out (5s)]\r\n");
+        resolve(done("timeout", null, "Execution timeout"));
+      }, config.timeoutMs);
+
+      p.stdout?.on("data", (chunk: Buffer) => {
+        outputBytes += chunk.length;
+        if (outputBytes <= config.maxOutputBytes) {
+          h.onStdout(chunk.toString("utf8"));
+        }
+      });
+
+      p.stderr?.on("data", (chunk: Buffer) => {
+        outputBytes += chunk.length;
+        if (outputBytes <= config.maxOutputBytes) {
+          h.onStderr(chunk.toString("utf8"));
+        }
+      });
+
+      p.on("error", (err) => {
+        clearTimeout(timer);
+        h.onStderr(`\r\n[Host Fallback Error] Could not run ${cmd}: ${err.message}\r\n`);
+        resolve(done("failed", 1, err.message));
+      });
+
+      p.on("close", (code) => {
+        clearTimeout(timer);
+        h.onStatus("DESTROYED");
+        resolve(done("completed", code));
+      });
+    });
+  } catch (err: any) {
+    return done("failed", 1, err?.message ?? "Host fallback failed");
+  } finally {
+    try {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    } catch {}
+  }
+}
+
 /**
  * Multi-language sandbox runtime: one fresh Docker container per execution.
  * Dispatches to the appropriate language toolchain, compiles if required,
@@ -188,6 +283,10 @@ export class DockerRuntime implements SandboxRuntime {
       "tail", "-f", "/dev/null",                 // idle; real work happens via `docker exec`
     ]);
     if (create.code !== 0) {
+      if (create.err.includes("ENOENT") || create.err.includes("not found") || create.err.includes("not recognized") || create.code === -1) {
+        log("DOCKER", `Docker not available (${create.err.trim()}), using host fallback for ${req.executionId}`);
+        return executeHostFallback(req, h, done, plan);
+      }
       log("DOCKER", `create failed for ${req.executionId} (image=${plan.image})`);
       const detail = create.err.trim().split("\n").pop() ?? "unknown";
       return done("failed", null, `Sandbox creation failed with ${plan.image}: ${detail}`);

@@ -78,7 +78,8 @@ export default function CodeEditor({ doc, file, me, users, onCursor, onMultiCurs
       aiProvidersRef.current.push(
         monaco.languages.registerInlineCompletionsProvider(lang, {
           freeInlineCompletions() {},
-          provideInlineCompletions: (model, position) =>
+          disposeInlineCompletions() {},
+          provideInlineCompletions: (model: any, position: any) =>
             new Promise((resolve) => {
               if (!aiEnabledRef.current) return resolve({ items: [] });
               clearTimeout(timer);
@@ -93,7 +94,7 @@ export default function CodeEditor({ doc, file, me, users, onCursor, onMultiCurs
                 resolve({ items: [{ insertText: text, range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column) }] });
               }, 400);
             }),
-        }),
+        } as any),
       );
     }
   };
