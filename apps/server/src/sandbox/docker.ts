@@ -122,19 +122,89 @@ function getExecutionPlan(language: string, reqFileName?: string): ExecutionPlan
   }
 }
 
+async function runOnlineFallback(
+  req: ExecutionRequest,
+  h: ExecutionHandlers,
+  done: (outcome: ExecutionOutcome, exitCode: number | null, reason?: string) => ExecutionResult
+): Promise<ExecutionResult> {
+  const norm = req.language.toLowerCase();
+  const compilerMap: Record<string, string> = {
+    python: "cpython-3.12.7",
+    cpp: "gcc-14.2.0",
+    c: "gcc-14.2.0",
+    rust: "rust-1.82.0",
+    go: "go-1.23.2",
+    bash: "bash",
+    shell: "bash",
+    ruby: "ruby-3.3.5",
+    php: "php-8.3.12",
+  };
+
+  const compiler = compilerMap[norm];
+  if (!compiler) {
+    h.onStderr(`\r\n[Execution Error] Language "${req.language}" is not available on this server without Docker.\r\n`);
+    return done("failed", 1, `Language ${req.language} not available`);
+  }
+
+  h.onStatus("RUNNING");
+  h.onStdout("\x1b[36m⚡ [Cloud Sandbox: Executing via isolated cloud runner]\x1b[0m\r\n");
+
+  try {
+    const res = await fetch("https://wandbox.org/api/compile.json", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        compiler,
+        code: req.code,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      h.onStderr(`\r\n[Execution Error] ${errText}\r\n`);
+      return done("failed", 1, errText);
+    }
+
+    const data: any = await res.json();
+    if (data.compiler_error) {
+      h.onStderr(data.compiler_error);
+    }
+    if (data.program_output) {
+      h.onStdout(data.program_output);
+    }
+    if (data.program_error) {
+      h.onStderr(data.program_error);
+    }
+
+    const exitCode = data.status !== undefined ? parseInt(data.status, 10) : (data.program_error ? 1 : 0);
+    h.onStatus("DESTROYED");
+    return done("completed", isNaN(exitCode) ? 0 : exitCode);
+  } catch (e: any) {
+    h.onStderr(`\r\n[Execution Error] ${e.message}\r\n`);
+    return done("failed", 1, e.message);
+  }
+}
+
 async function executeHostFallback(
   req: ExecutionRequest,
   h: ExecutionHandlers,
   done: (outcome: ExecutionOutcome, exitCode: number | null, reason?: string) => ExecutionResult,
   plan: ExecutionPlan
 ): Promise<ExecutionResult> {
+  const norm = req.language.toLowerCase();
+
+  // If language is not JS/TS, use cloud online runner directly
+  if (norm !== "javascript" && norm !== "typescript") {
+    return runOnlineFallback(req, h, done);
+  }
+
   const fs = await import("node:fs/promises");
   const path = await import("node:path");
   const os = await import("node:os");
 
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "sbx-"));
   h.onStatus("RUNNING");
-  h.onStdout("\x1b[36m⚡ [Host Fallback: Docker not installed on host — executing directly]\x1b[0m\r\n");
+  h.onStdout("\x1b[36m⚡ [Host Runtime: Executing via Node.js]\x1b[0m\r\n");
 
   try {
     const filesToWrite = req.files && req.files.length > 0
@@ -148,27 +218,9 @@ async function executeHostFallback(
       await fs.writeFile(fullPath, f.content, "utf8");
     }
 
-    const norm = req.language.toLowerCase();
-    let cmd = "";
-    let args: string[] = [];
     const targetPath = path.join(tmpDir, plan.targetFile);
-
-    if (norm === "python") {
-      cmd = process.platform === "win32" ? "python" : "python3";
-      args = ["-u", targetPath];
-    } else if (norm === "javascript") {
-      cmd = "node";
-      args = [targetPath];
-    } else if (norm === "typescript") {
-      cmd = "node";
-      args = ["--experimental-strip-types", targetPath];
-    } else if (norm === "shell" || norm === "bash") {
-      cmd = process.platform === "win32" ? "bash" : "sh";
-      args = [targetPath];
-    } else {
-      h.onStderr(`\r\n[Host Fallback] Language "${req.language}" requires Docker or local compiler installed.\r\n`);
-      return done("failed", 1, `Language ${req.language} requires Docker`);
-    }
+    const cmd = "node";
+    const args = norm === "typescript" ? ["--experimental-strip-types", targetPath] : [targetPath];
 
     return await new Promise<ExecutionResult>((resolve) => {
       let outputBytes = 0;
@@ -196,10 +248,10 @@ async function executeHostFallback(
         }
       });
 
-      p.on("error", (err) => {
+      p.on("error", async () => {
         clearTimeout(timer);
-        h.onStderr(`\r\n[Host Fallback Error] Could not run ${cmd}: ${err.message}\r\n`);
-        resolve(done("failed", 1, err.message));
+        const res = await runOnlineFallback(req, h, done);
+        resolve(res);
       });
 
       p.on("close", (code) => {
