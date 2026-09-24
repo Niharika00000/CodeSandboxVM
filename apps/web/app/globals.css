@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html,
+body {
   height: 100%;
   background: #0c0d12;
   color: #d6dae3;
@@ -15,23 +16,36 @@ html, body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #232836;
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #363d52;
 }
+
 * {
   scrollbar-width: thin;
   scrollbar-color: #232836 transparent;
 }
 
-:focus-visible { outline: 2px solid #6aa7ff; outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+:focus-visible {
+  outline: 2px solid #6aa7ff;
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 
 /* ==========================================================================
    Remote collaborative cursors
@@ -41,14 +55,28 @@ html, body {
 
 /* Blinking animation — matches Monaco's own cursor blink feel */
 @keyframes rc-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Fade-in for label when a remote cursor first appears */
 @keyframes rc-label-in {
-  from { opacity: 0; transform: translateY(-4px) scale(0.85); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* The cursor caret itself: a 2px coloured vertical bar that blinks */
@@ -60,7 +88,9 @@ html, body {
 }
 
 /* Selection highlight band */
-.rc-sel { opacity: 0.25; }
+.rc-sel {
+  opacity: 0.25;
+}
 
 /* Name chip attached to cursor via Monaco's `after` inline decoration */
 .rc-label {
@@ -72,7 +102,7 @@ html, body {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.1px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.50);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .50);
   position: relative;
   top: -1px;
   /* smooth fade-in when label first renders */
@@ -85,46 +115,186 @@ html, body {
 
 /* 3D "opening" transition for a newly opened file tab / editor pane */
 @keyframes file-open-3d {
-  0% { transform: perspective(700px) rotateX(-16deg) translateY(-8px) scale(.97); opacity: 0; }
-  100% { transform: perspective(700px) rotateX(0deg) translateY(0) scale(1); opacity: 1; }
+  0% {
+    transform: perspective(700px) rotateX(-16deg) translateY(-8px) scale(.97);
+    opacity: 0;
+  }
+
+  100% {
+    transform: perspective(700px) rotateX(0deg) translateY(0) scale(1);
+    opacity: 1;
+  }
 }
-.file-open-3d { transform-origin: top center; animation: file-open-3d 220ms cubic-bezier(.2,.8,.2,1); }
 
-@keyframes chat-pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-.chat-badge { animation: chat-pop 200ms ease-out; }
+.file-open-3d {
+  transform-origin: top center;
+  animation: file-open-3d 220ms cubic-bezier(.2, .8, .2, 1);
+}
 
-@keyframes toast-in { 0% { transform: translateY(-6px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-.toast-in { animation: toast-in 180ms ease-out; }
+@keyframes chat-pop {
+  0% {
+    transform: scale(.4);
+    opacity: 0;
+  }
 
-.rc-cursor-0 { border-color: #6aa7ff; color: #6aa7ff; }
-.rc-sel-0 { background: #6aa7ff; }
-.rc-label-0 { background: #6aa7ff; }
-.user-0 { background: #6aa7ff; }
-.rc-cursor-1 { border-color: #e6b450; color: #e6b450; }
-.rc-sel-1 { background: #e6b450; }
-.rc-label-1 { background: #e6b450; }
-.user-1 { background: #e6b450; }
-.rc-cursor-2 { border-color: #4cc38a; color: #4cc38a; }
-.rc-sel-2 { background: #4cc38a; }
-.rc-label-2 { background: #4cc38a; }
-.user-2 { background: #4cc38a; }
-.rc-cursor-3 { border-color: #f0646e; color: #f0646e; }
-.rc-sel-3 { background: #f0646e; }
-.rc-label-3 { background: #f0646e; }
-.user-3 { background: #f0646e; }
-.rc-cursor-4 { border-color: #b58cf0; color: #b58cf0; }
-.rc-sel-4 { background: #b58cf0; }
-.rc-label-4 { background: #b58cf0; }
-.user-4 { background: #b58cf0; }
-.rc-cursor-5 { border-color: #4dd0e1; color: #4dd0e1; }
-.rc-sel-5 { background: #4dd0e1; }
-.rc-label-5 { background: #4dd0e1; }
-.user-5 { background: #4dd0e1; }
-.rc-cursor-6 { border-color: #f28fad; color: #f28fad; }
-.rc-sel-6 { background: #f28fad; }
-.rc-label-6 { background: #f28fad; }
-.user-6 { background: #f28fad; }
-.rc-cursor-7 { border-color: #c6d36a; color: #c6d36a; }
-.rc-sel-7 { background: #c6d36a; }
-.rc-label-7 { background: #c6d36a; }
-.user-7 { background: #c6d36a; }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.chat-badge {
+  animation: chat-pop 200ms ease-out;
+}
+
+@keyframes toast-in {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast-in {
+  animation: toast-in 180ms ease-out;
+}
+
+.rc-cursor-0 {
+  border-color: #6aa7ff;
+  color: #6aa7ff;
+}
+
+.rc-sel-0 {
+  background: #6aa7ff;
+}
+
+.rc-label-0 {
+  background: #6aa7ff;
+}
+
+.user-0 {
+  background: #6aa7ff;
+}
+
+.rc-cursor-1 {
+  border-color: #e6b450;
+  color: #e6b450;
+}
+
+.rc-sel-1 {
+  background: #e6b450;
+}
+
+.rc-label-1 {
+  background: #e6b450;
+}
+
+.user-1 {
+  background: #e6b450;
+}
+
+.rc-cursor-2 {
+  border-color: #4cc38a;
+  color: #4cc38a;
+}
+
+.rc-sel-2 {
+  background: #4cc38a;
+}
+
+.rc-label-2 {
+  background: #4cc38a;
+}
+
+.user-2 {
+  background: #4cc38a;
+}
+
+.rc-cursor-3 {
+  border-color: #f0646e;
+  color: #f0646e;
+}
+
+.rc-sel-3 {
+  background: #f0646e;
+}
+
+.rc-label-3 {
+  background: #f0646e;
+}
+
+.user-3 {
+  background: #f0646e;
+}
+
+.rc-cursor-4 {
+  border-color: #b58cf0;
+  color: #b58cf0;
+}
+
+.rc-sel-4 {
+  background: #b58cf0;
+}
+
+.rc-label-4 {
+  background: #b58cf0;
+}
+
+.user-4 {
+  background: #b58cf0;
+}
+
+.rc-cursor-5 {
+  border-color: #4dd0e1;
+  color: #4dd0e1;
+}
+
+.rc-sel-5 {
+  background: #4dd0e1;
+}
+
+.rc-label-5 {
+  background: #4dd0e1;
+}
+
+.user-5 {
+  background: #4dd0e1;
+}
+
+.rc-cursor-6 {
+  border-color: #f28fad;
+  color: #f28fad;
+}
+
+.rc-sel-6 {
+  background: #f28fad;
+}
+
+.rc-label-6 {
+  background: #f28fad;
+}
+
+.user-6 {
+  background: #f28fad;
+}
+
+.rc-cursor-7 {
+  border-color: #c6d36a;
+  color: #c6d36a;
+}
+
+.rc-sel-7 {
+  background: #c6d36a;
+}
+
+.rc-label-7 {
+  background: #c6d36a;
+}
+
+.user-7 {
+  background: #c6d36a;
+}
