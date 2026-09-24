@@ -63,3 +63,4 @@ export function getImageForLanguage(language: string): string {
   return config.image;
 }
 
+

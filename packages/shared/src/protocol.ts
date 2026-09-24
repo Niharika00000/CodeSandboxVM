@@ -387,3 +387,4 @@ export type ServerMessage =
   | { type: "EXECUTION_FAILED"; executionId: string; reason: string; durationMs: number }
   | { type: "CHAT_MESSAGE"; entry: ChatEntry }
   | { type: "ERROR"; code: string; message: string };
+

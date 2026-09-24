@@ -3,3 +3,4 @@ export type Tag = "SERVER" | "ROOM" | "WS" | "EXECUTION" | "DOCKER" | "SECURITY"
 export function log(tag: Tag, msg: string) {
   console.log(`${new Date().toISOString()} [${tag}] ${msg}`);
 }
+

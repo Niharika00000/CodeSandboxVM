@@ -4,3 +4,4 @@ const nextConfig = {
   reactStrictMode: false, // avoids double-mounting the WebSocket + Monaco binding in dev
 };
 export default nextConfig;
+

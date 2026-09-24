@@ -84,3 +84,4 @@ See `.env.example`. Limits default to: 5 s, 128 MB (no swap), 0.5 CPU, 64 PIDs, 
 ## Docs
 `docs/architecture.md` (diagram, data flow, design choices, challenges, future work), `docs/security.md` (threat model),
 `docs/demo.md` (demo script + interview explanation).
+

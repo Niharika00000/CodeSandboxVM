@@ -34,3 +34,4 @@ await run("output flood is capped", `while(true)console.log("x".repeat(1000))`, 
 
 console.log(failed ? `\n${failed} FAILED` : "\nAll sandbox tests passed");
 process.exit(failed ? 1 : 0);
+

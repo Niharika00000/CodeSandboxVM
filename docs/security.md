@@ -27,3 +27,4 @@ the browser cannot choose image, flags, limits, or code for a run. The pinned im
 | Kernel | shared with host | separate guest kernel |
 | Boot | ~100-500 ms | ~125 ms from snapshot |
 | Isolation boundary | namespaces + cgroups + seccomp | hardware virtualization (KVM) |
+

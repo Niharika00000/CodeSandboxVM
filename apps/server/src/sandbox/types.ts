@@ -46,3 +46,4 @@ export interface SandboxRuntime {
   /** Forward user keystrokes to the running program's stdin (e.g. a readline prompt). No-op if not running. */
   writeStdin(executionId: string, data: string): void;
 }
+

@@ -368,3 +368,4 @@ export default function RoomPage() {
   if (!name) return <NamePrompt onDone={(n) => { sessionStorage.setItem("sandbox-name", n); setName(n); }} />;
   return <Room roomId={roomId} name={name} />;
 }
+

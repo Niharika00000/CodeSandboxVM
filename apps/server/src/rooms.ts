@@ -112,3 +112,4 @@ export function broadcast(room: Room, msg: ServerMessage, exceptUserId?: string)
     if (c.user.id !== exceptUserId && c.ws.readyState === c.ws.OPEN) c.ws.send(data);
   }
 }
+

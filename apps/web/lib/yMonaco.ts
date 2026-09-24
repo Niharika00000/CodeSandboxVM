@@ -57,3 +57,4 @@ export function bindYTextToMonaco(ytext: Y.Text, ed: editor.IStandaloneCodeEdito
     ytext.unobserve(observer);
   };
 }
+

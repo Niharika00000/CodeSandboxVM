@@ -9,3 +9,4 @@ export function fromB64(s: string): Uint8Array {
   for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
   return u;
 }
+

@@ -120,3 +120,4 @@ log("SERVER", `Listening on http://${config.host}:${config.port} (runtime=${runt
 const info = spawnSync("docker", ["info", "--format", "{{.ServerVersion}}"], { encoding: "utf8" });
 if (info.status === 0) log("DOCKER", `Docker daemon reachable (v${info.stdout.trim()}). Image: ${config.image}`);
 else log("DOCKER", "WARNING: Docker daemon not reachable. Editing works, Run will fail. Start Docker Desktop / dockerd.");
+

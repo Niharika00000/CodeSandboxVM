@@ -21,3 +21,4 @@ Before: `npm run docker:pull`, `npm run dev`, load the app once (Monaco CDN), op
 - **Why the abstraction?** Docker now; Firecracker later without touching room/WebSocket code.
 - **Is Docker a microVM?** No. Containers share the host kernel; that is the main weakness we call out.
 - **What would you change for production?** Firecracker/gVisor, auth, rate limits, a pool of pre-warmed sandboxes, Redis for scaling.
+

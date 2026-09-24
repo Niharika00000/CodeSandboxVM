@@ -69,3 +69,4 @@ check("foreign Origin is rejected", evilResult === "blocked");
 for (const c of [a, b, bad]) c.ws.close();
 console.log(failed ? `\n${failed} FAILED` : "\nAll collaboration tests passed");
 process.exit(failed ? 1 : 0);
+

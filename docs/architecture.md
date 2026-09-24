@@ -40,3 +40,4 @@ the CLI was chosen to avoid a dependency and stream handling bugs within 12 hour
 Firecracker runtime (own kernel, jailer, vsock agent), warm pool of pre-booted microVMs, per-IP rate limiting,
 authentication and room permissions, Redis pub/sub for horizontal WebSocket scaling, persistence, multi-file projects,
 more languages, seccomp/gVisor for the Docker path, execution history.
+

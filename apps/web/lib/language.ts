@@ -69,3 +69,4 @@ export function getTemplateForLanguage(lang: string | undefined): string {
   }
   return "";
 }
+
