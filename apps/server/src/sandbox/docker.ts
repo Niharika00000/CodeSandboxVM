@@ -128,20 +128,22 @@ async function runOnlineFallback(
   done: (outcome: ExecutionOutcome, exitCode: number | null, reason?: string) => ExecutionResult
 ): Promise<ExecutionResult> {
   const norm = req.language.toLowerCase();
-  const compilerMap: Record<string, string> = {
-    python: "cpython-3.12.7",
-    cpp: "gcc-14.2.0",
-    c: "gcc-14.2.0",
-    rust: "rust-1.82.0",
-    go: "go-1.23.2",
-    bash: "bash",
-    shell: "bash",
-    ruby: "ruby-3.3.5",
-    php: "php-8.3.12",
+  const compilerMap: Record<string, { compiler: string; options?: string }> = {
+    python: { compiler: "cpython-3.12.7" },
+    c: { compiler: "gcc-13.2.0-c", options: "-std=c17\n-O2" },
+    cpp: { compiler: "gcc-13.2.0", options: "-std=c++20\n-O2" },
+    "c++": { compiler: "gcc-13.2.0", options: "-std=c++20\n-O2" },
+    java: { compiler: "openjdk-jdk-21+35" },
+    go: { compiler: "go-1.23.2" },
+    rust: { compiler: "rust-1.82.0" },
+    bash: { compiler: "bash" },
+    shell: { compiler: "bash" },
+    ruby: { compiler: "ruby-3.3.11" },
+    php: { compiler: "php-8.3.12" },
   };
 
-  const compiler = compilerMap[norm];
-  if (!compiler) {
+  const target = compilerMap[norm];
+  if (!target) {
     h.onStderr(`\r\n[Execution Error] Language "${req.language}" is not available on this server without Docker.\r\n`);
     return done("failed", 1, `Language ${req.language} not available`);
   }
@@ -150,13 +152,23 @@ async function runOnlineFallback(
   h.onStdout("\x1b[36m⚡ [Cloud Sandbox: Executing via isolated cloud runner]\x1b[0m\r\n");
 
   try {
+    const payload: any = {
+      compiler: target.compiler,
+      code: req.code,
+    };
+    if (target.options) {
+      payload["compiler-option-raw"] = target.options;
+    }
+    if (req.files && req.files.length > 1) {
+      payload.codes = req.files
+        .filter((f) => f.name !== (req.fileName || "main"))
+        .map((f) => ({ file: f.name, code: f.content }));
+    }
+
     const res = await fetch("https://wandbox.org/api/compile.json", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        compiler,
-        code: req.code,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
